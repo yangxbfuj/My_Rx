@@ -8,8 +8,28 @@ class Observable<T>(val onSubscribe: OnSubscribe<T>) {
         onSubscribe.call(subscriber)
     }
 
-    fun xx(): Observable<T> =
-            create(onSubscribe)
+    fun <R> trans(transformer: Transformer<T, R>): Observable<R> =
+            create(object : OnSubscribe<R>{
+                override fun call(s: Subscriber<R>) {
+                    this@Observable.subscribe(object : Subscriber<T>(){
+                        override fun onCompleted() {
+                            s.onCompleted()
+                        }
+
+                        override fun onError(t: Throws) {
+                            s.onError(t)
+                        }
+
+                        override fun onStart() {
+                            s.onStart()
+                        }
+
+                        override fun onNext(t:T) {
+                            s.onNext(transformer.transform(t))
+                        }
+                    })
+                }
+            })
 
     fun subsrcibeOn(): Observable<T> =
             create(object : OnSubscribe<T> {
@@ -63,9 +83,15 @@ class Observable<T>(val onSubscribe: OnSubscribe<T>) {
 
             })
 
+
+
     companion object A {
         @JvmStatic
         fun <T> create(onSubscribe: OnSubscribe<T>): Observable<T> =
                 Observable(onSubscribe)
     }
+}
+
+interface Transformer<T, R> {
+    fun transform(t: T): R
 }
