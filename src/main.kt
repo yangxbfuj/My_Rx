@@ -5,20 +5,23 @@ fun main(aaa: Array<String>) {
     println("Main start")
 
     Observable.create(object : OnSubscribe<Int> {
-        override fun call(subscribe: Subscriber<Int>) {
+        override fun call(s: Subscriber<Int>) {
             println(Thread.currentThread().name)
             println("Observable_OnSubscribe_call")
             for (i in 1..100) {
-                subscribe.onNext(i)
+                s.onNext(i)
             }
-
-            subscribe.onCompleted()
+            s.onCompleted()
         }
-    }).observeOn().subsrcibeOn().trans(object : Transformer<Int, String> {
+    })
+            .observeOn()
+            .subsrcibeOn()
+            .trans(object : Transformer<Int, String> {
         override fun transform(t: Int): String {
             return "String is $t"
         }
-    }).subscribe(object : Subscriber<String>() {
+    })
+            .subscribe(object : Subscriber<String>() {
         override fun onCompleted() {
             println(Thread.currentThread().name)
             println("subscribe_Subscriber_onCompleted")
